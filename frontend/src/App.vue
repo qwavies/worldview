@@ -1,7 +1,13 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+// import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <header>
+    <h1>Worldview</h1>
+  </header>
+
+  <main>
+    zzz
+  </main>
 </template>
