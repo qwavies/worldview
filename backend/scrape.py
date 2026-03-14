@@ -8,7 +8,7 @@ from src.news_scraper.news_database import news_to_db
 
 """
 TODO:
-    -[ ] create databases folder if it doesnt exist
+    -[x] create databases folder if it doesnt exist
     -[x] reddit 
     -[x] twitter
     -[x] news
