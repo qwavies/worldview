@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <header class="topbar">
-      <span class="title">Worldview</span>
+      <router-link to="/" class="brand-link">Worldview</router-link>
 
       <div class="selector-row">
         <div class="country-slot" :class="{ active: focusedSlot === 'A' }">
@@ -675,5 +675,22 @@ watch([selectedA, selectedB], updateHighlights)
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.brand-link {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brand-link:hover {
+  color: #e2e8f0;
 }
 </style>

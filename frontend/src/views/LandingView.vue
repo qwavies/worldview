@@ -5,18 +5,17 @@
 
     <div class="overlay" />
 
-    <div class="brand">
+    <router-link to="/" class="brand">
       Worldview
-    </div>
+    </router-link>
 
     <main class="content">
 
       <h1 class="title">
         Understand Global Perception<br />
       </h1>
-
       <p class="subtitle">
-        Real-time country sentiment powered by<br />global social data
+        Real-time country sentiment powered by global social data
       </p>
 
       <router-link to="/compare" class="cta-btn">
@@ -138,16 +137,20 @@ import globeVideo from '../assets/globe_spin.mp4'
   letter-spacing: -0.02em;
   opacity: 0;
   animation: fadeUp 0.8s 0.4s ease forwards;
+  margin-bottom: -22px;
 }
 
 
 .subtitle {
-  font-size: clamp(14px, 1.8vw, 18px);
-  color: #64748b;
+  font-family: "Roboto", sans-serif;
+  font-size: clamp(14px, 1.1vw, 18px);
+  color: #728eb5;
   line-height: 1.6;
   font-weight: 400;
   opacity: 0;
   animation: fadeUp 0.8s 0.6s ease forwards;
+  margin-bottom: 164px;
+  padding-bottom: 4px;
 }
 
 .cta-btn {
@@ -244,5 +247,9 @@ import globeVideo from '../assets/globe_spin.mp4'
   50% {
     box-shadow: 0 0 14px #3b82f6, 0 0 28px #3b82f699;
   }
+}
+
+.brand {
+  text-decoration: none;
 }
 </style>
