@@ -63,3 +63,8 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+
+backend/src/config.ini
+backend/src/cookies.json
+
