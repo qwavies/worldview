@@ -1,13 +1,7 @@
 <script setup>
-// import HelloWorld from './components/HelloWorld.vue'
+import CountrySelectView from './views/CountrySelectView.vue'
 </script>
 
 <template>
-  <header>
-    <h1>Worldview</h1>
-  </header>
-
-  <main>
-    zzz
-  </main>
+  <CountrySelectView />
 </template>
