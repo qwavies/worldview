@@ -68,5 +68,4 @@ logs/
 backend/src/config.ini
 backend/src/cookies.json
 
-databases/
-
+backend/databases/*
