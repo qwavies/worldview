@@ -67,3 +67,6 @@ logs/
 #twitter info
 backend/src/config.ini
 backend/src/cookies.json
+
+databases/
+
