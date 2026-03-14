@@ -8,8 +8,6 @@ def news_scrapper(countryA, countryB):
     load_dotenv()
     newsapi = NewsApiClient(api_key=os.getenv('news_api'))
     
-    #Map country names to NewsAPI-supported language codes
-    #NewsAPI supports these specific 14 languages
     supported_langs = {
         'AR': 'ar', 'DE': 'de', 'EN': 'en', 'ES': 'es', 'FR': 'fr', 
         'HE': 'he', 'IT': 'it', 'NL': 'nl', 'NO': 'no', 'PT': 'pt', 
@@ -17,25 +15,27 @@ def news_scrapper(countryA, countryB):
     }
 
     try:
+        #Get Country A Info
         countryA_info = pycountry.countries.search_fuzzy(countryA)[0]
         countryA_code = countryA_info.alpha_2.upper()
+        search_lang = supported_langs.get(countryA_code, 'en')
+
+        #translate both 
+        trans_A = GoogleTranslator(source='auto', target=search_lang).translate(countryA)
+        trans_B = GoogleTranslator(source='auto', target=search_lang).translate(countryB)
         
-        # Determine the language to search in
-        search_lang = supported_langs.get(countryA_code, 'en') # Default to English if not supported
-        
-        #Translate Country B's name into Country A's language
-        translated_query = GoogleTranslator(source='auto', target=search_lang).translate(countryB)
+        #query
+        query = f'"{trans_A}" AND "{trans_B}"'
         
         response = newsapi.get_everything(
-            q=translated_query,
+            q=query,
             language=search_lang,
             sort_by='relevancy',
             page_size=100
         )
-        
+
         articles = response.get('articles', [])
         
-        #Extract and Clean
         raw_titles = [
             a['title'].strip() 
             for a in articles 
@@ -43,15 +43,12 @@ def news_scrapper(countryA, countryB):
         ]
         
         if not raw_titles:
-            return [f"No results found in {countryA} for '{countryB}'."]
+            return [f"No results found in {countryA} regarding {countryB}."]
 
-        #Translate back to English
-        #If the search_lang was already 'en', we skip the second translation
         if search_lang == 'en':
             return raw_titles
             
-        translated_headlines = GoogleTranslator(source=search_lang, target='en').translate_batch(raw_titles)
-        return translated_headlines
+        return GoogleTranslator(source=search_lang, target='en').translate_batch(raw_titles)
 
     except Exception as e:
         return [f"Error: {e}"]
