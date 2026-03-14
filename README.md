@@ -24,3 +24,9 @@ TBD
 - Download `uv` look ([here](https://github.com/astral-sh/uv) for download)
 - run `uv sync` to install all dependencies
 - TBD
+
+## AI Acknowledgement
+
+Gemini was used for:
+- creating `.gitignore`
+- learning about implementing external python libraries
