@@ -23,6 +23,3 @@ def news_to_db(country_a, country_b, news_text, sentiment_score):
 
     conn.commit()
     conn.close()
-
-if __name__ == "__main__":
-    news_to_db("hei", "hey", ["a", "b", "c"], 1)
