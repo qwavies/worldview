@@ -7,7 +7,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Initialize VADER
 def RedditScrapper(country1, country2):
-    
+
     analyzer = SentimentIntensityAnalyzer()
     # Added a User-Agent to avoid getting blocked by Reddit
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -56,6 +56,8 @@ def RedditScrapper(country1, country2):
 
     if data:
         avg_score = sum(r['score'] for r in data) / len(data)
+        
+    return avg_score
 
 
             
