@@ -1,22 +1,19 @@
 import requests
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from bs4 import BeautifulSoup 
-import urllib3
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Initialize VADER
-def RedditScrapper(country1, country2):
+def RedditScrapper(countryA, countryB):
 
     analyzer = SentimentIntensityAnalyzer()
     # Added a User-Agent to avoid getting blocked by Reddit
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    base_url = f"https://www.reddit.com/r/{country1}/search/?q={country2}&type=posts&t=month"
+    base_url = f"https://www.reddit.com/r/{countryA}/search/?q={countryB}&type=posts&t=month"
 
     session = requests.session()
     session.headers.update(headers)
 
-    response = session.get(base_url, verify=False)
+    response = session.get(base_url)
     soup = BeautifulSoup(response.text, 'html.parser')
     posts = soup.find_all('a', {'data-testid': 'post-title'})
 
@@ -28,7 +25,7 @@ def RedditScrapper(country1, country2):
         
         json_url = f"https://www.reddit.com{relative_url.rstrip('/')}.json"
         
-        post_response = session.get(json_url, verify=False)
+        post_response = session.get(json_url)
         
         if post_response.status_code == 200:
             json_data = post_response.json()
@@ -56,9 +53,11 @@ def RedditScrapper(country1, country2):
 
     if data:
         avg_score = sum(r['score'] for r in data) / len(data)
-        
+
     return avg_score
 
+if __name__ == "__main__":
+    RedditScrapper(countryA="Australia", countryB="USA")
 
             
 
