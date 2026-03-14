@@ -1,9 +1,10 @@
 import requests
 from bs4 import BeautifulSoup 
-import sqlite3
 
-# Initialize VADER
-def RedditScrapper(countryA, countryB):
+"""
+returns: (countryA: str, countryB: str, data: list[str])
+"""
+def reddit_scraper(countryA: str, countryB: str) -> tuple[str, str, list[str]]:
 
     # Added a User-Agent to avoid getting blocked by Reddit
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -16,7 +17,7 @@ def RedditScrapper(countryA, countryB):
     soup = BeautifulSoup(response.text, 'html.parser')
     posts = soup.find_all('a', {'data-testid': 'post-title'})
 
-    data = [] # Store dictionaries with text and sentiment
+    data: list[str] = [] # Store dictionaries with text and sentiment
 
     for post in posts:
         relative_url = post.get('href')
@@ -51,7 +52,9 @@ def RedditScrapper(countryA, countryB):
     return countryA, countryB, data
 
 if __name__ == "__main__":
-    RedditScrapper(countryA="Australia", countryB="USA")
+    # print(RedditScraper(countryA="Australia", countryB="USA"))
+    _, _, data = reddit_scraper(countryA="Australia", countryB="USA")
 
-            
-
+    for post in data:
+        print(post)
+        print("\n\n")

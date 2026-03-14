@@ -1,10 +1,12 @@
 import sqlite3
 from datetime import datetime
+from src.sentiment_analysis.sentiment_analysis import analyse
 
-def save_to_db(countryA, countryB, avg_score):
-    conn = sqlite3.connect('worldview_reddit.db')
+def save_to_reddit_db(countryA: str, countryB: str, data: list[str]):
+    conn = sqlite3.connect('databases/worldview_reddit.db')
     cursor = conn.cursor() 
 
+    # create database if it doesnt exist
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sentiment_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,10 +17,19 @@ def save_to_db(countryA, countryB, avg_score):
         )
     ''')
 
-    cursor.execute('''
-        INSERT INTO sentiment_results (country_a, country_b, score, date_created)
-        VALUES (?, ?, ?, ?)
-    ''', (countryA, countryB, avg_score, datetime.now()))
+    # iterate through all posts, get sentiment analysis and put in database
+    for post in data:
+        sentiment_score = analyse(post)
+
+        cursor.execute('''
+            INSERT INTO sentiment_results (country_a, country_b, score, date_created)
+            VALUES (?, ?, ?, ?)
+        ''', (countryA, countryB, sentiment_score, datetime.now()))
 
     conn.commit()
     conn.close()
+
+if __name__ == "__main__":
+    from src.reddit_scraper.reddit_scraper import reddit_scraper
+
+    save_to_reddit_db(*reddit_scraper("Australia", "USA"))
