@@ -5,24 +5,25 @@
 
       <div class="selector-row">
         <div class="country-slot" :class="{ active: focusedSlot === 'A' }">
-          <div class="slot-label">Country A</div>
-          <div class="autocomplete-wrap">
-            <input ref="inputA" v-model="searchA" @input="onSearchA" @focus="focusedSlot = 'A'; showDropA = true"
-              @blur="delayClose('A')" @keydown.enter="selectFirst('A')" @keydown.escape="showDropA = false"
-              placeholder="Search country…" class="country-input"
-              :style="selectedA ? `border-color: ${colorA}55; background: ${colorA}11` : ''" />
-            <div v-if="selectedA" class="flag-chip" :style="`background: ${colorA}22`">
-              <img :src="flagUrl(selectedA.code2)" :alt="selectedA.name" class="flag-img" />
-              <span>{{ selectedA.name }}</span>
-              <button class="clear-btn" @mousedown.prevent="clearA">×</button>
+          <div class="input-fixed">
+            <div class="autocomplete-wrap">
+              <input ref="inputA" v-model="searchA" @input="onSearchA" @focus="focusedSlot = 'A'; showDropA = true"
+                @blur="delayClose('A')" @keydown.enter="selectFirst('A')" @keydown.escape="showDropA = false"
+                placeholder="Search country…" class="country-input"
+                :style="selectedA ? `border-color: ${colorA}55; background: ${colorA}11` : ''" />
+              <div v-if="selectedA" class="flag-chip" :style="`background: ${colorA}22`">
+                <img :src="flagUrl(selectedA.code2)" :alt="selectedA.name" class="flag-img" />
+                <span>{{ selectedA.name }}</span>
+                <button class="clear-btn" @mousedown.prevent="clearA">×</button>
+              </div>
+              <ul v-if="showDropA && filteredA.length" class="dropdown">
+                <li v-for="c in filteredA.slice(0, 8)" :key="c.code2" @mousedown.prevent="selectCountry('A', c)"
+                  class="drop-item">
+                  <img :src="flagUrl(c.code2)" class="drop-flag" />
+                  {{ c.name }}
+                </li>
+              </ul>
             </div>
-            <ul v-if="showDropA && filteredA.length" class="dropdown">
-              <li v-for="c in filteredA.slice(0, 8)" :key="c.code2" @mousedown.prevent="selectCountry('A', c)"
-                class="drop-item">
-                <img :src="flagUrl(c.code2)" class="drop-flag" />
-                {{ c.name }}
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -36,24 +37,25 @@
         </button>
 
         <div class="country-slot" :class="{ active: focusedSlot === 'B' }">
-          <div class="slot-label">Country B</div>
-          <div class="autocomplete-wrap">
-            <input ref="inputB" v-model="searchB" @input="onSearchB" @focus="focusedSlot = 'B'; showDropB = true"
-              @blur="delayClose('B')" @keydown.enter="selectFirst('B')" @keydown.escape="showDropB = false"
-              placeholder="Search country…" class="country-input"
-              :style="selectedB ? `border-color: ${colorB}55; background: ${colorB}11` : ''" />
-            <div v-if="selectedB" class="flag-chip" :style="`background: ${colorB}22`">
-              <img :src="flagUrl(selectedB.code2)" :alt="selectedB.name" class="flag-img" />
-              <span>{{ selectedB.name }}</span>
-              <button class="clear-btn" @mousedown.prevent="clearB">×</button>
+          <div class="input-fixed">
+            <div class="autocomplete-wrap">
+              <input ref="inputB" v-model="searchB" @input="onSearchB" @focus="focusedSlot = 'B'; showDropB = true"
+                @blur="delayClose('B')" @keydown.enter="selectFirst('B')" @keydown.escape="showDropB = false"
+                placeholder="Search country…" class="country-input"
+                :style="selectedB ? `border-color: ${colorB}55; background: ${colorB}11` : ''" />
+              <div v-if="selectedB" class="flag-chip" :style="`background: ${colorB}22`">
+                <img :src="flagUrl(selectedB.code2)" :alt="selectedB.name" class="flag-img" />
+                <span>{{ selectedB.name }}</span>
+                <button class="clear-btn" @mousedown.prevent="clearB">×</button>
+              </div>
+              <ul v-if="showDropB && filteredB.length" class="dropdown">
+                <li v-for="c in filteredB.slice(0, 8)" :key="c.code2" @mousedown.prevent="selectCountry('B', c)"
+                  class="drop-item">
+                  <img :src="flagUrl(c.code2)" class="drop-flag" />
+                  {{ c.name }}
+                </li>
+              </ul>
             </div>
-            <ul v-if="showDropB && filteredB.length" class="dropdown">
-              <li v-for="c in filteredB.slice(0, 8)" :key="c.code2" @mousedown.prevent="selectCountry('B', c)"
-                class="drop-item">
-                <img :src="flagUrl(c.code2)" class="drop-flag" />
-                {{ c.name }}
-              </li>
-            </ul>
           </div>
         </div>
       </div>
@@ -84,6 +86,12 @@
       </div>
     </div>
 
+    <div v-if="unavailablePopup" class="unavailable-popup"
+      :style="`left: ${unavailablePopup.x}px; top: ${unavailablePopup.y}px`">
+      <span class="unavailable-icon">✕</span>
+      {{ unavailablePopup.name }}: country unavailable
+    </div>
+
   </div>
 </template>
 
@@ -91,6 +99,19 @@
 
 
 <script setup>
+const unavailablePopup = ref(null)
+let unavailableTimer = null
+
+function showUnavailable(name, event) {
+  if (unavailableTimer) clearTimeout(unavailableTimer)
+  const rect = mapEl.value.getBoundingClientRect()
+  unavailablePopup.value = {
+    name,
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+  }
+  unavailableTimer = setTimeout(() => { unavailablePopup.value = null }, 2500)
+}
 import { ref, computed, onMounted, watch } from 'vue'
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm'
 import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm'
@@ -236,14 +257,22 @@ async function buildMap() {
       const match = countries.value.find(c =>
         c.name.toLowerCase() === name.toLowerCase()
       )
-      if (!match) return
-      if (focusedSlot.value === 'A') selectCountry('A', match)
-      else if (focusedSlot.value === 'B') selectCountry('B', match)
-      else {
-        // auto-pick slot
-        if (!selectedA.value) selectCountry('A', match)
-        else if (!selectedB.value) selectCountry('B', match)
-        else selectCountry('A', match)
+      if (!match) {
+        showUnavailable(name || 'This territory', event)  // ← was just `return`
+        return
+      }
+
+      if (focusedSlot.value === 'A') {
+        selectCountry('A', match)
+      } else if (focusedSlot.value === 'B') {
+        selectCountry('B', match)
+      } else {
+        // Key change: if A is filled, always go to B next
+        if (!selectedA.value) {
+          selectCountry('A', match)
+        } else {
+          selectCountry('B', match)  // was: else if (!selectedB) ... else replace A
+        }
       }
     })
 
@@ -382,7 +411,6 @@ watch([selectedA, selectedB], updateHighlights)
 }
 
 .page {
-  font-family: 'Syne', sans-serif;
   background: #080f1a;
   color: #cbd5e1;
   height: 100vh;
@@ -399,11 +427,15 @@ watch([selectedA, selectedB], updateHighlights)
   padding: 10px 20px;
   background: #0d1b2a;
   border-bottom: 1px solid #1e3a5f;
+  height: 110px;
+  overflow: visible;
   flex-shrink: 0;
   z-index: 10;
 }
 
 .title {
+  font-family: 'Syne', sans-serif;
+
   font-weight: 700;
   font-size: 16px;
   color: #60a5fa;
@@ -423,14 +455,6 @@ watch([selectedA, selectedB], updateHighlights)
   position: relative;
 }
 
-.slot-label {
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.1em;
-  color: #475569;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-}
 
 .autocomplete-wrap {
   position: relative;
@@ -443,8 +467,8 @@ watch([selectedA, selectedB], updateHighlights)
   border-radius: 8px;
   padding: 8px 12px;
   color: #e2e8f0;
-  font-family: 'Syne', sans-serif;
   font-size: 14px;
+  font-family: "Roboto", sans-serif;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -457,15 +481,28 @@ watch([selectedA, selectedB], updateHighlights)
   border-color: #3b82f6;
 }
 
+.input-fixed {
+  position: relative;
+  height: 60px;
+}
+
+.autocomplete-wrap {
+  position: relative;
+}
+
 .flag-chip {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 7px;
   padding: 5px 10px;
   border-radius: 6px;
-  margin-top: 4px;
   font-size: 13px;
   font-weight: 600;
+  z-index: 5;
 }
 
 .flag-img {
@@ -505,6 +542,7 @@ watch([selectedA, selectedB], updateHighlights)
 }
 
 .drop-item {
+  font-family: "Roboto", sans-serif;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -602,6 +640,7 @@ watch([selectedA, selectedB], updateHighlights)
 }
 
 .legend-item {
+  font-family: "Roboto", sans-serif;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -637,8 +676,8 @@ watch([selectedA, selectedB], updateHighlights)
 }
 
 .submit button {
-  width: 66px;
-  height: 46px;
+  width: 96px;
+  height: 86px;
   background: #0d1b2a;
   border: 1px solid #1e3a5f;
   border-radius: 7px;
@@ -678,6 +717,8 @@ watch([selectedA, selectedB], updateHighlights)
 }
 
 .brand-link {
+  font-family: 'Syne', sans-serif;
+
   font-size: 18px;
   font-weight: 700;
   color: #e2e8f0;
@@ -686,11 +727,33 @@ watch([selectedA, selectedB], updateHighlights)
   white-space: nowrap;
   display: flex;
   align-items: center;
+  padding-bottom: 21px;
   gap: 8px;
   flex-shrink: 0;
 }
 
 .brand-link:hover {
   color: #e2e8f0;
+}
+
+.unavailable-popup {
+  position: absolute;
+  transform: translate(-10%, -10%);
+  background: #0d1b2a;
+  border: 1px solid #7f1d1d;
+  color: #fca5a5;
+  border-radius: 7px;
+  padding: 6px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 20;
+  pointer-events: none;
+  animation: fadeIn 0.15s ease;
+}
+
+.unavailable-icon {
+  font-size: 11px;
+  margin-right: 5px;
+  opacity: 0.7;
 }
 </style>
