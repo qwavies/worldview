@@ -46,9 +46,9 @@ def news_scrapper(countryA, countryB):
             return [f"No results found in {countryA} regarding {countryB}."]
 
         if search_lang == 'en':
-            return raw_titles
+            return countryA, countryB, raw_titles
             
-        return GoogleTranslator(source=search_lang, target='en').translate_batch(raw_titles)
+        return countryA, countryB, GoogleTranslator(source=search_lang, target='en').translate_batch(raw_titles)
 
     except Exception as e:
         return [f"Error: {e}"]
