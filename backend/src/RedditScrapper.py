@@ -1,11 +1,9 @@
 import requests
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from bs4 import BeautifulSoup 
 
 # Initialize VADER
 def RedditScrapper(countryA, countryB):
 
-    analyzer = SentimentIntensityAnalyzer()
     # Added a User-Agent to avoid getting blocked by Reddit
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     base_url = f"https://www.reddit.com/r/{countryA}/search/?q={countryB}&type=posts&t=month"
@@ -39,8 +37,7 @@ def RedditScrapper(countryA, countryB):
             post_content = f"{title} {body}".strip()
             
             if post_content:
-                score = analyzer.polarity_scores(post_content)['compound']
-                data.append({'type': 'post', 'text': post_content, 'score': score})
+                data.append(post_content)
             
             # GET COMMENTS
             comments = json_data[1]['data']['children']
@@ -48,13 +45,9 @@ def RedditScrapper(countryA, countryB):
             for comment in comments:
                 if comment['kind'] == 't1':
                     comment_body = comment['data'].get('body', '')
-                    score = analyzer.polarity_scores(comment_body)['compound']
-                    data.append({'type': 'comment', 'text': comment_body, 'score': score})
+                    data.append(comment_body)
 
-    if data:
-        avg_score = sum(r['score'] for r in data) / len(data)
-
-    return avg_score
+    return countryA, countryB, data
 
 if __name__ == "__main__":
     RedditScrapper(countryA="Australia", countryB="USA")
