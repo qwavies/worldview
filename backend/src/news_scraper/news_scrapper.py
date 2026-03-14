@@ -53,4 +53,3 @@ def news_scrapper(countryA, countryB):
     except Exception as e:
         return [f"Error: {e}"]
     
-print(news_scrapper("china", "USA"))
