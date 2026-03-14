@@ -4,7 +4,7 @@ import pycountry
 from dotenv import load_dotenv
 import os
 
-def news_scrapper(countryA, countryB):
+def news_scrapper(countryA: str, countryB: str) -> tuple[str, str, list[str]]:
     load_dotenv()
     newsapi = NewsApiClient(api_key=os.getenv('news_api'))
     
