@@ -1,13 +1,12 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from src.pydantic_models import CountryABQuery
 
 app = FastAPI()
-
-class Item(BaseModel):
-    text: str|None = None
-    is_done: bool = False
 
 @app.get("/testapi")
 def test_api():
     return {"hello": "world"}
 
+@app.get("/sentiment")
+def get_countryab_sentiment(countryAB: CountryABQuery):
+    return {"a_to_b":0.2, "b_to_a":0.5}

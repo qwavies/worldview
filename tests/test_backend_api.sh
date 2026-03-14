@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# query http://127.0.0.1:8000/sentiment
+curl -X GET -H "Content-Type: application/json" -d '{"countryA": "Australia", "countryB": "China"}' "http://127.0.0.1:8000/sentiment"
