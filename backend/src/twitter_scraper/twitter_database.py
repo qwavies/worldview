@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_NAME = 'worldview_tweet.db'
+DB_NAME = 'databases/worldview_tweet.db'
 
 def setup_database():
     conn = sqlite3.connect(DB_NAME)
@@ -15,7 +15,8 @@ def setup_database():
             tweet_text TEXT,
             created_at TEXT,
             retweets INTEGER,
-            likes INTEGER
+            likes INTEGER,
+            score REAL
         )
     ''')
     conn.commit()
@@ -28,8 +29,8 @@ def insert_tweets_batch(tweet_batch_data):
     cursor = conn.cursor()
     
     cursor.executemany('''
-        INSERT INTO tweets (source_country, target_country, username, tweet_text, created_at, retweets, likes)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO tweets (source_country, target_country, username, tweet_text, created_at, retweets, likes, score)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ''', tweet_batch_data)
     
     conn.commit()

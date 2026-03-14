@@ -6,13 +6,17 @@ from random import randint
 from configparser import ConfigParser
 from geopy.geocoders import Nominatim
 from twikit import Client, TooManyRequests, NotFound
-from twitter_database import setup_database, insert_tweets_batch
+from src.twitter_scraper.twitter_database import setup_database, insert_tweets_batch
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+def analyse(content: str) -> float:
+    if not content:
+        return 0.0
+    
+    analyzer = SentimentIntensityAnalyzer()
+    return analyzer.polarity_scores(content)['compound']
 
 MINIMUM_TWEETS = 50
-SEARCH_TASKS = [
-    {'source': 'Iran', 'target': 'USA'},
-]
 
 def check_configuration(filepath='config.ini'):
     """
@@ -121,6 +125,8 @@ async def process_country_pair(client, source, target):
 
         current_batch = []
         for tweet in tweets:
+            tweet_analysis = analyse(tweet.text) # sentiment analysis
+
             tweet_count += 1
             tweet_data = (
                 source, 
@@ -129,7 +135,8 @@ async def process_country_pair(client, source, target):
                 tweet.text, 
                 tweet.created_at, 
                 tweet.retweet_count, 
-                tweet.favorite_count
+                tweet.favorite_count,
+                tweet_analysis
             )
             current_batch.append(tweet_data)
 
@@ -140,7 +147,10 @@ async def process_country_pair(client, source, target):
     print(f"DONE extraction for {source} -> {target}.\n")
 
 
-async def main():
+async def main(countryA: str, countryB: str):
+    search_tasks = [
+    {'source': countryA, 'target': countryB},
+]
 
     check_configuration()
     print(f'{datetime.now()} - Setting up database...')
@@ -148,12 +158,12 @@ async def main():
 
     client = authenticate_client()
 
-    for task in SEARCH_TASKS:
+    for task in search_tasks:
         await process_country_pair(client, task['source'], task['target'])
         print("Taking an 8-second break before the next country...")
         await asyncio.sleep(8)
 
     print("ALL TASKS DONE")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     asyncio.run(main())
