@@ -1,43 +1,59 @@
 from newsapi import NewsApiClient
-from newspaper import Article
+from deep_translator import GoogleTranslator
 import pycountry
 from dotenv import load_dotenv
 import os
 
 def news_scrapper(countryA, countryB):
-    def get_country_code(name):
-        try:
-            results = pycountry.countries.search_fuzzy(name)
-            return results[0].alpha_2.lower() 
-        except Exception:
-            return None
     load_dotenv()
-    API = os.getenv('news_api')
-    newsapi = NewsApiClient(api_key=API)
+    newsapi = NewsApiClient(api_key=os.getenv('news_api'))
     
-    countryA = "USA"
-    countryAcode = get_country_code(countryA)
-    countryB = "CHINA"
-    articles = newsapi.get_top_headlines(
-        q=countryB,       # Country B
-        country=countryAcode,    # Country A
-        language='en'
-    )
-    data = []
-    for article in articles['articles']:
-        url = article['url']
-        title = article['title']
+    #Map country names to NewsAPI-supported language codes
+    #NewsAPI supports these specific 14 languages
+    supported_langs = {
+        'AR': 'ar', 'DE': 'de', 'EN': 'en', 'ES': 'es', 'FR': 'fr', 
+        'HE': 'he', 'IT': 'it', 'NL': 'nl', 'NO': 'no', 'PT': 'pt', 
+        'RU': 'ru', 'SE': 'se', 'ZH': 'zh', 'JP': 'jp'
+    }
+
+    try:
+        countryA_info = pycountry.countries.search_fuzzy(countryA)[0]
+        countryA_code = countryA_info.alpha_2.upper()
         
-        try:
-            #Get the full text content
-            scraper = Article(url)
-            scraper.download()
-            scraper.parse()
-            full_text = scraper.text
-            data.append(full_text)
+        # Determine the language to search in
+        search_lang = supported_langs.get(countryA_code, 'en') # Default to English if not supported
         
-        except Exception as e:
-            print(f"Skipping {title[:30]}... (Error: {e})")
+        #Translate Country B's name into Country A's language
+        translated_query = GoogleTranslator(source='auto', target=search_lang).translate(countryB)
         
-    return data
+        response = newsapi.get_everything(
+            q=translated_query,
+            language=search_lang,
+            sort_by='relevancy',
+            page_size=100
+        )
+        
+        articles = response.get('articles', [])
+        
+        #Extract and Clean
+        raw_titles = [
+            a['title'].strip() 
+            for a in articles 
+            if a.get('title') and a['title'] != '[Removed]'
+        ]
+        
+        if not raw_titles:
+            return [f"No results found in {countryA} for '{countryB}'."]
+
+        #Translate back to English
+        #If the search_lang was already 'en', we skip the second translation
+        if search_lang == 'en':
+            return raw_titles
             
+        translated_headlines = GoogleTranslator(source=search_lang, target='en').translate_batch(raw_titles)
+        return translated_headlines
+
+    except Exception as e:
+        return [f"Error: {e}"]
+    
+print(news_scrapper("china", "USA"))
