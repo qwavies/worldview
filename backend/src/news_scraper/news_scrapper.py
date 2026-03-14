@@ -25,10 +25,10 @@ def news_scrapper(countryA, countryB):
         trans_B = GoogleTranslator(source='auto', target=search_lang).translate(countryB)
         
         #query
-        query = f'"{trans_A}" AND "{trans_B}"'
+        query = f'+"{trans_A}" +"{trans_B}"'
         
         response = newsapi.get_everything(
-            q=query,
+            qintitle=query,
             language=search_lang,
             sort_by='relevancy',
             page_size=100
