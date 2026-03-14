@@ -22,3 +22,6 @@ def news_to_db(country_a, country_b, news_text, sentiment_score, date_created):
 
     conn.commit()
     conn.close()
+    print("database initialised")
+
+def 
