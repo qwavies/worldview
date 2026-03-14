@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 
 def save_to_db(countryA, countryB, avg_score):
-    conn = sqlite3.connect('reddit_data.db')
+    conn = sqlite3.connect('worldview_reddit.db')
     cursor = conn.cursor() 
 
     cursor.execute('''

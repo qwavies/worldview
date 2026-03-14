@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup 
+import sqlite3
 
 # Initialize VADER
 def RedditScrapper(countryA, countryB):
