@@ -2,8 +2,8 @@ import sqlite3
 from datetime import datetime
 
 def save_to_db(countryA, countryB, avg_score):
-    conn = sqlite3.connect('sentiment_data.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('reddit_data.db')
+    cursor = conn.cursor() 
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sentiment_results (
