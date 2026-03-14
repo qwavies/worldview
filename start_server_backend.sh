@@ -7,6 +7,4 @@ uv sync
 source .venv/bin/activate
 
 # start backend server
-uv run uvicorn src.api:app --reload
-
-
+uv run uvicorn src.api.server:app --reload
