@@ -23,7 +23,10 @@ def filter_zeros(numbers: list[float]) -> list[float]:
     return [n for n in numbers if n != 0]
 
 def average_sentiment(content: list[float]) -> float:
-    return sum(content) / len(content) if content else 0.0
+    if len(content) == 0:
+        return 0
+    else:
+        return sum(content) / len(content)
 
 app = FastAPI()
 
@@ -49,8 +52,8 @@ def get_countryab_sentiment(countryAB: CountryABQuery):
     try:
         _, _, a_to_b_reddit = reddit_scraper(countryA, countryB)
         _, _, b_to_a_reddit = reddit_scraper(countryB, countryA)
-        a_to_b_reddit_sentiments: list[float] = filter_zeros(analyse_list(a_to_b_reddit))
-        b_to_a_reddit_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_reddit))
+        a_to_b_reddit_sentiments: list[float] = filter_zeros(analyse_list(a_to_b_reddit)) # works
+        b_to_a_reddit_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_reddit)) # works
         a_to_b_reddit_sentiment: float = average_sentiment(a_to_b_reddit_sentiments)
         b_to_a_reddit_sentiment: float = average_sentiment(b_to_a_reddit_sentiments)
     except:
@@ -71,5 +74,5 @@ def get_countryab_sentiment(countryAB: CountryABQuery):
 
     return {
         "news": {"a": a_to_b_news_sentiment, "b": b_to_a_news_sentiment},
-        "reddit": {"a": a_to_b_reddit_sentiments, "b": b_to_a_reddit_sentiments},
+        "reddit": {"a": a_to_b_reddit_sentiment, "b": b_to_a_reddit_sentiment},
     }
