@@ -8,7 +8,7 @@ app = FastAPI()
 def test_api():
     return {"hello": "world"}
 
-@app.get("/sentiment")
+@app.post("/sentiment")
 def get_countryab_sentiment(countryAB: CountryABQuery):
     # TODO: query from DBs and return
     def rand():
