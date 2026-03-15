@@ -22,7 +22,10 @@ def filter_zeros(numbers: list[float]) -> list[float]:
     return [n for n in numbers if n != 0]
 
 def average_sentiment(content: list[float]) -> float:
-    return sum(content) / len(content) if content else 0.0
+    if len(content) == 0:
+        return 0
+    else:
+        return sum(content) / len(content)
 
 app = FastAPI()
 
