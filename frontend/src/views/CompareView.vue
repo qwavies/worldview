@@ -66,17 +66,14 @@
       </div>
     </header>
 
-    <!-- ── Map ── -->
     <div class="map-container" ref="mapEl"></div>
 
-    <!-- ── Zoom controls ── -->
     <div class="zoom-controls">
       <button @click="zoomIn">+</button>
       <button @click="zoomOut">−</button>
       <button @click="resetView" title="Reset view">⌂</button>
     </div>
 
-    <!-- ── Legend ── -->
     <div class="legend" v-if="selectedA || selectedB">
       <div v-if="selectedA" class="legend-item">
         <span class="legend-dot" :style="`background:${colorA}`"></span>
@@ -90,20 +87,17 @@
       </div>
     </div>
 
-    <!-- ── Submit ── -->
     <div class="hint" v-if="showHint">Select two countries first</div>
     <div class="submit">
       <button @click="submitCompare" :disabled="isSubmitting">›</button>
     </div>
 
-    <!-- ── Unavailable popup ── -->
     <div v-if="unavailablePopup" class="unavailable-popup"
       :style="`left: ${unavailablePopup.x}px; top: ${unavailablePopup.y}px`">
       <span class="unavailable-icon">✕</span>
       {{ unavailablePopup.name }}: country unavailable
     </div>
 
-    <!-- ── Results panel (mounts immediately on submit; progress UI shown while loading) ── -->
     <ResultsPanel v-if="showPanel" :sentimentData="sentimentData" :countryA="selectedA" :countryB="selectedB"
       :loading="isSubmitting" @close="showPanel = false; sentimentData = null" />
 
@@ -121,7 +115,6 @@ import ResultsPanel from '../components/ResultsPanel.vue'
 const colorA = '#3B82F6'
 const colorB = '#F97316'
 
-// ── Country selection ─────────────────────────────────────────────
 const countries = ref(countryList)
 const selectedA = ref(null)
 const selectedB = ref(null)
@@ -179,7 +172,6 @@ function flagUrl(code2) {
   return `https://flagcdn.com/24x18/${code2.toLowerCase()}.png`
 }
 
-// ── Map ───────────────────────────────────────────────────────────
 const mapEl = ref(null)
 let svgEl = null, gEl = null, zoomBehavior = null, pathFn = null, worldData = null
 
@@ -355,7 +347,6 @@ function resetView() {
 
 watch([selectedA, selectedB], updateHighlights)
 
-// ── Submit / fetch ────────────────────────────────────────────────
 const showHint = ref(false)
 const isSubmitting = ref(false)
 const sentimentData = ref(null)
@@ -374,23 +365,14 @@ async function submitCompare() {
   resetView()
 
   try {
-    let data
-    try {
-      const res = await fetch(
-        `http://localhost:8000/sentiment?countryA=${selectedA.value.code2}&countryB=${selectedB.value.code2}`
-      )
-      if (!res.ok) throw new Error(`${res.status}`)
-      data = await res.json()
-    } catch {
-      // Mock fallback — simulate real scraping time so progress stages are visible
-      await new Promise(r => setTimeout(r, 11000))
-      data = {
-        news: { a: +(Math.random() * 2 - 1).toFixed(3), b: +(Math.random() * 2 - 1).toFixed(3) },
-        reddit: { a: +(Math.random() * 2 - 1).toFixed(3), b: +(Math.random() * 2 - 1).toFixed(3) },
-        twitter: { a: +(Math.random() * 2 - 1).toFixed(3), b: +(Math.random() * 2 - 1).toFixed(3) },
-      }
-    }
-    sentimentData.value = data
+    const res = await fetch(
+      `http://localhost:8000/sentiment?countryA=${selectedA.value.code2}&countryB=${selectedB.value.code2}`
+    )
+    if (!res.ok) throw new Error(`Server error: ${res.status}`)
+    sentimentData.value = await res.json()
+  } catch (err) {
+    console.error('Failed to fetch sentiment:', err)
+    showPanel.value = false
   } finally {
     isSubmitting.value = false
   }
@@ -427,7 +409,6 @@ async function submitCompare() {
   transition: filter 0.4s ease;
 }
 
-/* ── Topbar ── */
 .topbar {
   display: flex;
   align-items: center;
@@ -442,30 +423,24 @@ async function submitCompare() {
   transition: filter 0.4s ease;
 }
 
-/* Update your existing .brand class */
 .brand {
   text-decoration: none;
   flex-shrink: 0;
   display: block;
   width: 160px;
-  /* Set this to the approximate width of your logo + text */
 }
 
-/* Add this new class */
 .topbar-spacer {
   width: 160px;
-  /* Must match the .brand width exactly */
   flex-shrink: 0;
 }
 
-/* Ensure the selector row stays centered */
 .selector-row {
   display: flex;
   align-items: center;
   gap: 12px;
   flex: 1;
   justify-content: center;
-  /* Add this to help alignment */
 }
 
 .logo {
@@ -603,7 +578,6 @@ async function submitCompare() {
   transform: scale(1.08);
 }
 
-/* ── Map ── */
 .map-container {
   flex: 1;
   position: relative;
@@ -616,7 +590,6 @@ async function submitCompare() {
   display: block;
 }
 
-/* ── Zoom controls ── */
 .zoom-controls {
   position: absolute;
   bottom: 28px;
@@ -648,7 +621,6 @@ async function submitCompare() {
   color: #e2e8f0;
 }
 
-/* ── Legend ── */
 .legend {
   position: absolute;
   bottom: 28px;
@@ -687,7 +659,6 @@ async function submitCompare() {
   border-radius: 2px;
 }
 
-/* ── Submit ── */
 .submit {
   position: absolute;
   bottom: 28px;
@@ -721,7 +692,6 @@ async function submitCompare() {
   opacity: 0.4;
 }
 
-/* ── Hint ── */
 .hint {
   position: absolute;
   bottom: 122px;
@@ -737,7 +707,6 @@ async function submitCompare() {
   transition: filter 0.4s ease;
 }
 
-/* ── Unavailable popup ── */
 .unavailable-popup {
   position: absolute;
   transform: translate(-10%, -10%);
@@ -759,7 +728,6 @@ async function submitCompare() {
   opacity: 0.7;
 }
 
-/* ── Transitions ── */
 @keyframes spin {
   to {
     transform: rotate(360deg);

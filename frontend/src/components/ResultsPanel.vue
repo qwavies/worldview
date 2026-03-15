@@ -2,8 +2,7 @@
   <Transition name="panel" appear>
     <div v-if="visible" class="panel">
 
-      <!-- Clickable top area to dismiss -->
-      <div class="panel-top" @click="dismiss">
+      <div class="panel-top" :class="{ locked: loading }" @click="dismiss">
         <div class="panel-handle"></div>
         <div class="panel-header">
           <span class="dismiss-hint">↓ back to map</span>
@@ -22,7 +21,6 @@
         </div>
       </div>
 
-      <!-- Loading / progress state -->
       <div v-if="loading" class="loading-body">
         <div class="progress-stages">
           <div v-for="(stage, i) in stages" :key="stage.key" class="stage-row" :class="{
@@ -45,7 +43,6 @@
         </div>
       </div>
 
-      <!-- Results body -->
       <div v-else class="panel-body">
 
         <div class="platform-row" v-for="(platform, i) in platforms" :key="platform.key"
@@ -131,15 +128,14 @@ const emit = defineEmits(['close'])
 const colorA = '#3B82F6'
 const colorB = '#F97316'
 
-// ── Dismiss with slide-down ───────────────────────────────────────
 const visible = ref(true)
 
 function dismiss() {
+  if (props.loading) return
   visible.value = false
   setTimeout(() => emit('close'), 320)
 }
 
-// ── Progress stages ───────────────────────────────────────────────
 const stages = [
   { key: 'reddit', label: `Scraping Reddit — ${props.countryA.name} & ${props.countryB.name}` },
   { key: 'twitter', label: `Scraping Twitter — ${props.countryA.name} & ${props.countryB.name}` },
@@ -148,7 +144,6 @@ const stages = [
   { key: 'done', label: 'Finalising results' },
 ]
 
-// Realistic per-stage durations in ms (scraping takes longer)
 const stageDurations = [3400, 3000, 2000, 1200, 700]
 
 const currentStage = ref(0)
@@ -172,7 +167,6 @@ function runStage(index) {
 
   progressTimer = setInterval(() => {
     step++
-    // Ease-out: fills quickly then crawls near 100 to feel "waiting"
     const raw = step / totalSteps
     stageProgress.value = Math.min(96, raw * 100 * (1.6 - raw * 0.7))
 
@@ -185,7 +179,6 @@ function runStage(index) {
           currentStage.value = index + 1
           runStage(index + 1)
         }
-        // else: stay on last stage until loading prop flips to false
       }, 220)
     }
   }, intervalMs)
@@ -193,7 +186,7 @@ function runStage(index) {
 
 function stopProgress() {
   clearInterval(progressTimer)
-  currentStage.value = stages.length // all done
+  currentStage.value = stages.length
   stageProgress.value = 100
 }
 
@@ -208,7 +201,6 @@ watch(() => props.loading, (val) => {
 
 onUnmounted(() => clearInterval(progressTimer))
 
-// ── Data ──────────────────────────────────────────────────────────
 const platforms = [
   { key: 'news', label: 'News', icon: '📰' },
   { key: 'reddit', label: 'Reddit', icon: '💬' },
@@ -263,8 +255,6 @@ function sentimentLabel(v) {
 }
 
 .panel {
-  background: transparent;
-  overflow: hidden;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -281,7 +271,6 @@ function sentimentLabel(v) {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* ── Slide transitions ── */
 .panel-enter-active {
   transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
 }
@@ -296,14 +285,16 @@ function sentimentLabel(v) {
   opacity: 0;
 }
 
-/* ── Dismissable top ── */
+.panel-top.locked {
+  cursor: default;
+  pointer-events: none;
+}
+
 .panel-top {
   flex-shrink: 0;
   cursor: pointer;
   user-select: none;
   border-bottom: 1px solid #1e3a5f;
-  background: #0d1b2a;
-  border-radius: 20px 20px 0 0;
   transition: background 0.15s;
 }
 
@@ -384,7 +375,6 @@ function sentimentLabel(v) {
   flex: 0 0 80px;
 }
 
-/* ── Loading body ── */
 .loading-body {
   flex: 1;
   display: flex;
@@ -490,7 +480,6 @@ function sentimentLabel(v) {
   flex-shrink: 0;
 }
 
-/* ── Results body — no left/right padding ── */
 .panel-body {
   flex: 1;
   overflow-y: auto;
