@@ -3,6 +3,7 @@ import random
 from src.api.pydantic_models import CountryABQuery
 from fastapi.middleware.cors import CORSMiddleware
 
+
 app = FastAPI()
 
 app.add_middleware(

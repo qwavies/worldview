@@ -1,16 +1,16 @@
 <template>
   <div class="landing">
 
-    <video class="bg-video" autoplay muted loop playsinline :src="globeVideo" />
+    <img class="bg-globe" :src="earthImage" alt="" />
+    <img class="bg-layer-secondary" :src="backgroundImage" alt="" />
 
     <div class="overlay" />
 
     <router-link to="/" class="brand">
-      Worldview
+      <img :src="logoImage" alt="Worldview Logo" class="logo" />
     </router-link>
 
     <main class="content">
-
       <h1 class="title">
         Understand Global Perception<br />
       </h1>
@@ -35,7 +35,9 @@
 </template>
 
 <script setup>
-import globeVideo from '../assets/globe_spin.mp4'
+import earthImage from '../assets/Earth.png'
+import backgroundImage from '../assets/Background.png'
+import logoImage from '../assets/LogoWithText.png'
 </script>
 
 <style scoped>
@@ -61,14 +63,40 @@ import globeVideo from '../assets/globe_spin.mp4'
   justify-content: center;
 }
 
-.bg-video {
+.bg-layer-secondary {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-globe {
+  z-index: 1;
+  position: absolute;
+  width: min(200vh, 200vw);
+  height: min(200vh, 200vw);
+  top: 105%;
+  left: 50%;
+  translate: -50% -50%;
+  object-fit: contain;
   opacity: 0.55;
   filter: saturate(0.7) brightness(0.8);
+  animation: spin 120s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  from {
+    rotate: 0deg;
+  }
+
+  to {
+    rotate: 360deg;
+  }
 }
 
 .overlay {
@@ -92,21 +120,20 @@ import globeVideo from '../assets/globe_spin.mp4'
   pointer-events: none;
 }
 
+.brand .logo {
+  height: 52px;
+  width: auto;
+  display: block;
+}
+
 .brand {
   position: absolute;
   top: 28px;
   left: 32px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #e2e8f0;
-  letter-spacing: 0.04em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   z-index: 10;
+  text-decoration: none;
   animation: fadeDown 0.8s ease both;
 }
-
 
 .content {
   position: relative;
@@ -119,16 +146,6 @@ import globeVideo from '../assets/globe_spin.mp4'
   margin-top: -40px;
 }
 
-.eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #3b82f6;
-  opacity: 0;
-  animation: fadeUp 0.7s 0.2s ease forwards;
-}
-
 .title {
   font-size: clamp(30px, 4vw, 66px);
   font-weight: 300;
@@ -139,7 +156,6 @@ import globeVideo from '../assets/globe_spin.mp4'
   animation: fadeUp 0.8s 0.4s ease forwards;
   margin-bottom: -22px;
 }
-
 
 .subtitle {
   font-family: "Roboto", sans-serif;
@@ -212,7 +228,6 @@ import globeVideo from '../assets/globe_spin.mp4'
   transform: translateX(4px);
 }
 
-/* Added some animations */
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -235,21 +250,5 @@ import globeVideo from '../assets/globe_spin.mp4'
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    box-shadow: 0 0 8px #3b82f6, 0 0 16px #3b82f666;
-  }
-
-  50% {
-    box-shadow: 0 0 14px #3b82f6, 0 0 28px #3b82f699;
-  }
-}
-
-.brand {
-  text-decoration: none;
 }
 </style>
