@@ -100,6 +100,7 @@
 
     <ResultsPanel v-if="showPanel" :sentimentData="sentimentData" :countryA="selectedA" :countryB="selectedB"
       :loading="isSubmitting" @close="showPanel = false; sentimentData = null" />
+
   </div>
 </template>
 
@@ -364,6 +365,14 @@ async function submitCompare() {
   resetView()
 
   try {
+
+    // Hard coding America for now
+    if (selectedA.value.name == 'United States of America') {
+      selectedA.value.name = 'America'
+    }
+    if (selectedB.value.name == 'United States of America') {
+      selectedB.value.name = 'America'
+    }
 
     const res = await fetch(`https://worldview-production.up.railway.app/sentiment`, {
       method: 'POST',
