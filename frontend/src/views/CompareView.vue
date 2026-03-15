@@ -100,7 +100,6 @@
 
     <ResultsPanel v-if="showPanel" :sentimentData="sentimentData" :countryA="selectedA" :countryB="selectedB"
       :loading="isSubmitting" @close="showPanel = false; sentimentData = null" />
-
   </div>
 </template>
 
