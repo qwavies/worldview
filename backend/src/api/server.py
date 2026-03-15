@@ -1,8 +1,16 @@
 from fastapi import FastAPI, HTTPException
 import random
 from src.api.pydantic_models import CountryABQuery
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+    )
 
 @app.get("/testapi")
 def test_api():
