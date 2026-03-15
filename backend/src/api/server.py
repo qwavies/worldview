@@ -41,20 +41,29 @@ def test_api():
 def get_countryab_sentiment(countryAB: CountryABQuery):
     countryA: str = countryAB.countryA
     countryB: str = countryAB.countryB
-    _, _, a_to_b_reddit = reddit_scraper(countryA, countryB)
-    _, _, b_to_a_reddit = reddit_scraper(countryB, countryA)
-    _, _, a_to_b_news = news_scrapper(countryA, countryB)
-    _, _, b_to_a_news = news_scrapper(countryB, countryA)
 
-    a_to_b_reddit_sentiments: list[float] = filter_zeros(analyse_list(a_to_b_reddit))
-    b_to_a_reddit_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_reddit))
-    a_to_b_news_sentiments: list[float] = filter_zeros(analyse_list(a_to_b_news))
-    b_to_a_news_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_news))
+    try:
+        _, _, a_to_b_reddit = reddit_scraper(countryA, countryB)
+        _, _, b_to_a_reddit = reddit_scraper(countryB, countryA)
+        a_to_b_reddit_sentiments: list[float] = filter_zeros(analyse_list(a_to_b_reddit))
+        b_to_a_reddit_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_reddit))
+        a_to_b_reddit_sentiment: float = average_sentiment(a_to_b_reddit_sentiments)
+        b_to_a_reddit_sentiment: float = average_sentiment(b_to_a_reddit_sentiments)
+    except:
+        a_to_b_reddit_sentiment: float = 0
+        b_to_a_reddit_sentiment: float = 0
 
-    a_to_b_reddit_sentiment: float = average_sentiment(a_to_b_reddit_sentiments)
-    b_to_a_reddit_sentiment: float = average_sentiment(b_to_a_reddit_sentiments)
-    a_to_b_news_sentiment: float = average_sentiment(a_to_b_news_sentiments)
-    b_to_a_news_sentiment: float = average_sentiment(b_to_a_news_sentiments)
+    try:
+        _, _, a_to_b_news = news_scrapper(countryA, countryB)
+        _, _, b_to_a_news = news_scrapper(countryB, countryA)
+        a_to_b_news_sentiments: list[float] = filter_zeros(analyse_list(a_to_b_news))
+        b_to_a_news_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_news))
+        a_to_b_news_sentiment: float = average_sentiment(a_to_b_news_sentiments)
+        b_to_a_news_sentiment: float = average_sentiment(b_to_a_news_sentiments)
+    except:
+        a_to_b_news_sentiment: float = 0
+        b_to_a_news_sentiment: float = 0
+
 
     return {
         "news": {"a": a_to_b_news_sentiment, "b": b_to_a_news_sentiment},
