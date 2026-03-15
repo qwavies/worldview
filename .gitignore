@@ -67,5 +67,8 @@ logs/
 #twitter info
 backend/src/config.ini
 backend/src/cookies.json
+backend/config.ini
+backend/cookies.json
 
 backend/databases/*
+!backend.databases/README.md

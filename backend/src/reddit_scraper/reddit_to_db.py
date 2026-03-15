@@ -1,6 +1,13 @@
 import sqlite3
 from datetime import datetime
-from src.sentiment_analysis.sentiment_analysis import analyse
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+def analyse(content: str) -> float:
+    if not content:
+        return 0.0
+    
+    analyzer = SentimentIntensityAnalyzer()
+    return analyzer.polarity_scores(content)['compound']
 
 def save_to_reddit_db(countryA: str, countryB: str, data: list[str]):
     conn = sqlite3.connect('databases/worldview_reddit.db')
