@@ -140,7 +140,6 @@ function dismiss() {
 
 const stages = [
   { key: 'reddit', label: `Scraping Reddit — ${props.countryA.name} & ${props.countryB.name}` },
-  { key: 'twitter', label: `Scraping Twitter — ${props.countryA.name} & ${props.countryB.name}` },
   { key: 'news', label: 'Scraping news sources' },
   { key: 'analyse', label: 'Running sentiment analysis' },
   { key: 'done', label: 'Finalising results' },
@@ -204,9 +203,8 @@ watch(() => props.loading, (val) => {
 onUnmounted(() => clearInterval(progressTimer))
 
 const platforms = [
-  { key: 'news', label: 'News', icon: '📰' },
-  { key: 'reddit', label: 'Reddit', icon: '💬' },
-  { key: 'twitter', label: 'Twitter', icon: '𝕏' },
+  { key: 'news', label: 'News' },
+  { key: 'reddit', label: 'Reddit' },
 ]
 
 function flagUrl(code2) {
