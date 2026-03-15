@@ -43,6 +43,9 @@ def get_countryab_sentiment(countryAB: CountryABQuery):
     countryA: str = countryAB.countryA
     countryB: str = countryAB.countryB
 
+    a_to_b_reddit_sentiments = [-67.0]
+    b_to_a_reddit_sentiments = [-67.0]
+
     try:
         _, _, a_to_b_reddit = reddit_scraper(countryA, countryB)
         _, _, b_to_a_reddit = reddit_scraper(countryB, countryA)
@@ -50,11 +53,9 @@ def get_countryab_sentiment(countryAB: CountryABQuery):
         b_to_a_reddit_sentiments: list[float] = filter_zeros(analyse_list(b_to_a_reddit))
         a_to_b_reddit_sentiment: float = average_sentiment(a_to_b_reddit_sentiments)
         b_to_a_reddit_sentiment: float = average_sentiment(b_to_a_reddit_sentiments)
-        works = True
     except:
         a_to_b_reddit_sentiment: float = 0
         b_to_a_reddit_sentiment: float = 0
-        works = False
 
     try:
         _, _, a_to_b_news = news_scrapper(countryA, countryB)
@@ -68,9 +69,7 @@ def get_countryab_sentiment(countryAB: CountryABQuery):
         b_to_a_news_sentiment: float = 0
 
 
-    time.sleep(10)
-
     return {
         "news": {"a": a_to_b_news_sentiment, "b": b_to_a_news_sentiment},
-        "reddit": {"a": works, "b": works},
+        "reddit": {"a": a_to_b_reddit_sentiments, "b": b_to_a_reddit_sentiments},
     }
