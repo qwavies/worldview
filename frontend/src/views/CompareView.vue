@@ -100,7 +100,6 @@
 
     <ResultsPanel v-if="showPanel" :sentimentData="sentimentData" :countryA="selectedA" :countryB="selectedB"
       :loading="isSubmitting" @close="showPanel = false; sentimentData = null" />
-
   </div>
 </template>
 
@@ -365,9 +364,15 @@ async function submitCompare() {
   resetView()
 
   try {
-    const res = await fetch(
-      `http://localhost:8000/sentiment?countryA=${selectedA.value.code2}&countryB=${selectedB.value.code2}`
-    )
+
+    const res = await fetch(`https://worldview-production.up.railway.app/sentiment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        countryA: selectedA.value.name,
+        countryB: selectedB.value.name,
+      })
+    })
     if (!res.ok) throw new Error(`Server error: ${res.status}`)
     sentimentData.value = await res.json()
   } catch (err) {
@@ -674,7 +679,9 @@ async function submitCompare() {
   border: 1px solid #1e3a5f;
   border-radius: 7px;
   color: #94a3b8;
-  font-size: 28px;
+  font-size: 98px;
+  font-weight: 500;
+  padding-bottom: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;

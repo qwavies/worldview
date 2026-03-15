@@ -1,117 +1,119 @@
 <template>
-  <Transition name="panel" appear>
-    <div v-if="visible" class="panel">
+  <div class="page">
+    <Transition name="panel" appear>
+      <div v-if="visible" class="panel">
 
-      <div class="panel-top" :class="{ locked: loading }" @click="dismiss">
-        <div class="panel-handle"></div>
-        <div class="panel-header">
-          <span class="dismiss-hint">↓ back to map</span>
-          <div class="country-pills">
-            <div class="country-pill" :style="`border-color: ${colorA}55; background: ${colorA}11`">
-              <img :src="flagUrl(countryA.code2)" class="pill-flag" />
-              <span>{{ countryA.name }}</span>
-            </div>
-            <span class="vs-label">vs</span>
-            <div class="country-pill" :style="`border-color: ${colorB}55; background: ${colorB}11`">
-              <img :src="flagUrl(countryB.code2)" class="pill-flag" />
-              <span>{{ countryB.name }}</span>
-            </div>
-          </div>
-          <div class="spacer"></div>
-        </div>
-      </div>
-
-      <div v-if="loading" class="loading-body">
-        <div class="progress-stages">
-          <div v-for="(stage, i) in stages" :key="stage.key" class="stage-row" :class="{
-            done: i < currentStage,
-            active: i === currentStage,
-            pending: i > currentStage,
-          }">
-            <div class="stage-icon">
-              <span v-if="i < currentStage" class="icon-done">✓</span>
-              <span v-else-if="i === currentStage" class="icon-spinner"></span>
-              <span v-else class="icon-dot">·</span>
-            </div>
-            <span class="stage-label">{{ stage.label }}</span>
-            <div v-if="i === currentStage" class="stage-bar">
-              <div class="stage-bar-fill" :style="`width: ${stageProgress}%`"></div>
-            </div>
-            <span v-else-if="i < currentStage" class="stage-done-label">done</span>
-            <span v-else class="stage-done-label" style="opacity:0">—</span>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="panel-body">
-
-        <div class="platform-row" v-for="(platform, i) in platforms" :key="platform.key"
-          :style="`animation-delay: ${i * 80}ms`">
-          <div class="platform-label">
-            <span class="platform-icon">{{ platform.icon }}</span>
-            <span class="platform-name">{{ platform.label }}</span>
-          </div>
-
-          <div class="bar-group">
-            <span class="score-chip" :style="`color: ${colorA}`">
-              <img :src="flagUrl(countryA.code2)" class="score-flag" />
-              {{ fmt(sentimentData[platform.key]?.a) }}
-            </span>
-
-            <div class="bar-track">
-              <div class="bar-half bar-left">
-                <div class="bar-fill"
-                  :style="`width: ${negPct(sentimentData[platform.key]?.a)}%; background: ${colorA}`">
-                </div>
-                <div class="bar-fill"
-                  :style="`width: ${negPct(sentimentData[platform.key]?.b)}%; background: ${colorB}; opacity: 0.6`">
-                </div>
+        <div class="panel-top" :class="{ locked: loading }" @click="dismiss">
+          <div class="panel-handle"></div>
+          <div class="panel-header">
+            <span class="dismiss-hint">↓ back to map</span>
+            <div class="country-pills">
+              <div class="country-pill" :style="`border-color: ${colorA}55; background: ${colorA}11`">
+                <img :src="flagUrl(countryA.code2)" class="pill-flag" />
+                <span>{{ countryA.name }}</span>
               </div>
-              <div class="bar-center"></div>
-              <div class="bar-half bar-right">
-                <div class="bar-fill"
-                  :style="`width: ${posPct(sentimentData[platform.key]?.a)}%; background: ${colorA}`">
-                </div>
-                <div class="bar-fill"
-                  :style="`width: ${posPct(sentimentData[platform.key]?.b)}%; background: ${colorB}; opacity: 0.6`">
-                </div>
+              <span class="vs-label">vs</span>
+              <div class="country-pill" :style="`border-color: ${colorB}55; background: ${colorB}11`">
+                <img :src="flagUrl(countryB.code2)" class="pill-flag" />
+                <span>{{ countryB.name }}</span>
               </div>
             </div>
-
-            <span class="score-chip score-right" :style="`color: ${colorB}`">
-              {{ fmt(sentimentData[platform.key]?.b) }}
-              <img :src="flagUrl(countryB.code2)" class="score-flag" />
-            </span>
-          </div>
-
-          <div class="bar-axis">
-            <span>−1</span><span>0</span><span>+1</span>
+            <div class="spacer"></div>
           </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="averages">
-          <h3 class="section-title">Average Sentiment</h3>
-          <div class="avg-row">
-            <div class="avg-card" :style="`border-color: ${colorA}33`">
-              <img :src="flagUrl(countryA.code2)" class="avg-flag" />
-              <span class="avg-name">{{ countryA.name }}</span>
-              <span class="avg-score" :style="`color: ${scoreColor(avgA)}`">{{ fmt(avgA) }}</span>
-              <span class="avg-verdict">{{ sentimentLabel(avgA) }}</span>
-            </div>
-            <div class="avg-card" :style="`border-color: ${colorB}33`">
-              <img :src="flagUrl(countryB.code2)" class="avg-flag" />
-              <span class="avg-name">{{ countryB.name }}</span>
-              <span class="avg-score" :style="`color: ${scoreColor(avgB)}`">{{ fmt(avgB) }}</span>
-              <span class="avg-verdict">{{ sentimentLabel(avgB) }}</span>
+        <div v-if="loading" class="loading-body">
+          <div class="progress-stages">
+            <div v-for="(stage, i) in stages" :key="stage.key" class="stage-row" :class="{
+              done: i < currentStage,
+              active: i === currentStage,
+              pending: i > currentStage,
+            }">
+              <div class="stage-icon">
+                <span v-if="i < currentStage" class="icon-done">✓</span>
+                <span v-else-if="i === currentStage" class="icon-spinner"></span>
+                <span v-else class="icon-dot">·</span>
+              </div>
+              <span class="stage-label">{{ stage.label }}</span>
+              <div v-if="i === currentStage" class="stage-bar">
+                <div class="stage-bar-fill" :style="`width: ${stageProgress}%`"></div>
+              </div>
+              <span v-else-if="i < currentStage" class="stage-done-label">done</span>
+              <span v-else class="stage-done-label" style="opacity:0">—</span>
             </div>
           </div>
         </div>
 
+        <div v-else class="panel-body">
+
+          <div class="platform-row" v-for="(platform, i) in platforms" :key="platform.key"
+            :style="`animation-delay: ${i * 80}ms`">
+            <div class="platform-label">
+              <span class="platform-icon">{{ platform.icon }}</span>
+              <span class="platform-name">{{ platform.label }}</span>
+            </div>
+
+            <div class="bar-group">
+              <span class="score-chip" :style="`color: ${colorA}`">
+                <img :src="flagUrl(countryA.code2)" class="score-flag" />
+                {{ fmt(sentimentData[platform.key]?.a) }}
+              </span>
+
+              <div class="bar-track">
+                <div class="bar-half bar-left">
+                  <div class="bar-fill"
+                    :style="`width: ${negPct(sentimentData[platform.key]?.a)}%; background: ${colorA}`">
+                  </div>
+                  <div class="bar-fill"
+                    :style="`width: ${negPct(sentimentData[platform.key]?.b)}%; background: ${colorB}; opacity: 0.6`">
+                  </div>
+                </div>
+                <div class="bar-center"></div>
+                <div class="bar-half bar-right">
+                  <div class="bar-fill"
+                    :style="`width: ${posPct(sentimentData[platform.key]?.a)}%; background: ${colorA}`">
+                  </div>
+                  <div class="bar-fill"
+                    :style="`width: ${posPct(sentimentData[platform.key]?.b)}%; background: ${colorB}; opacity: 0.6`">
+                  </div>
+                </div>
+              </div>
+
+              <span class="score-chip score-right" :style="`color: ${colorB}`">
+                {{ fmt(sentimentData[platform.key]?.b) }}
+                <img :src="flagUrl(countryB.code2)" class="score-flag" />
+              </span>
+            </div>
+
+            <div class="bar-axis">
+              <span>−1</span><span>0</span><span>+1</span>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="averages">
+            <h3 class="section-title">Average Sentiment</h3>
+            <div class="avg-row">
+              <div class="avg-card" :style="`border-color: ${colorA}33`">
+                <img :src="flagUrl(countryA.code2)" class="avg-flag" />
+                <span class="avg-name">{{ countryA.name }}</span>
+                <span class="avg-score" :style="`color: ${scoreColor(avgA)}`">{{ fmt(avgA) }}</span>
+                <span class="avg-verdict">{{ sentimentLabel(avgA) }}</span>
+              </div>
+              <div class="avg-card" :style="`border-color: ${colorB}33`">
+                <img :src="flagUrl(countryB.code2)" class="avg-flag" />
+                <span class="avg-name">{{ countryB.name }}</span>
+                <span class="avg-score" :style="`color: ${scoreColor(avgB)}`">{{ fmt(avgB) }}</span>
+                <span class="avg-verdict">{{ sentimentLabel(avgB) }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </div>
 </template>
 
 <script setup>
@@ -138,7 +140,6 @@ function dismiss() {
 
 const stages = [
   { key: 'reddit', label: `Scraping Reddit — ${props.countryA.name} & ${props.countryB.name}` },
-  { key: 'twitter', label: `Scraping Twitter — ${props.countryA.name} & ${props.countryB.name}` },
   { key: 'news', label: 'Scraping news sources' },
   { key: 'analyse', label: 'Running sentiment analysis' },
   { key: 'done', label: 'Finalising results' },
@@ -202,9 +203,8 @@ watch(() => props.loading, (val) => {
 onUnmounted(() => clearInterval(progressTimer))
 
 const platforms = [
-  { key: 'news', label: 'News', icon: '📰' },
-  { key: 'reddit', label: 'Reddit', icon: '💬' },
-  { key: 'twitter', label: 'Twitter', icon: '𝕏' },
+  { key: 'news', label: 'News' },
+  { key: 'reddit', label: 'Reddit' },
 ]
 
 function flagUrl(code2) {
@@ -259,7 +259,7 @@ function sentimentLabel(v) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 72vh;
+  height: 78vh;
   background: #0d1b2a;
   border-top: 1px solid #1e3a5f;
   border-radius: 20px 20px 0 0;
@@ -353,7 +353,6 @@ function sentimentLabel(v) {
   border: 1px solid;
   font-size: 13px;
   font-weight: 600;
-  font-family: 'Syne', sans-serif;
   color: #e2e8f0;
 }
 
@@ -366,7 +365,6 @@ function sentimentLabel(v) {
 .vs-label {
   font-size: 10px;
   color: #334e68;
-  font-family: 'Syne', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -520,7 +518,6 @@ function sentimentLabel(v) {
 }
 
 .platform-name {
-  font-family: 'Syne', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -621,7 +618,6 @@ function sentimentLabel(v) {
 }
 
 .section-title {
-  font-family: 'Syne', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -654,7 +650,6 @@ function sentimentLabel(v) {
 }
 
 .avg-name {
-  font-family: 'Syne', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: #e2e8f0;
@@ -672,6 +667,11 @@ function sentimentLabel(v) {
   color: #4a6a8a;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.page {
+  font-family: "Roboto", sans-serif;
+
 }
 
 @keyframes spin {
