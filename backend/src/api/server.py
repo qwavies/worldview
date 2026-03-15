@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 import random
 from src.api.pydantic_models import CountryABQuery
 from fastapi.middleware.cors import CORSMiddleware
+import time
 
 app = FastAPI()
 
@@ -21,6 +22,8 @@ def get_countryab_sentiment(countryAB: CountryABQuery):
     # TODO: query from DBs and return
     def rand():
         return round(random.uniform(-1, 1), 3)
+
+    time.sleep(10)
 
     return {
         "news": {"a": rand(), "b": rand()},
