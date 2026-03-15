@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from src.api.pydantic_models import CountryABQuery
 import random
 
 app = FastAPI()
@@ -18,8 +19,7 @@ def test_api():
 
 
 @app.get("/sentiment")
-def get_sentiment(countryA: str, countryB: str):
-    # TODO: replace with real DB queries
+def get_sentiment(countryAB: CountryABQuery):
     def rand():
         return round(random.uniform(-1, 1), 3)
 
