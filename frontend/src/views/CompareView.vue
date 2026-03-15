@@ -366,20 +366,22 @@ async function submitCompare() {
 
   try {
 
+    let A = selectedA.value.name
+    let B = selectedB.value.name
     // Hard coding America for now
     if (selectedA.value.name == 'United States of America') {
-      selectedA.value.name = 'America'
+      A = 'America'
     }
     if (selectedB.value.name == 'United States of America') {
-      selectedB.value.name = 'America'
+      B = 'America'
     }
 
     const res = await fetch(`https://worldview-production.up.railway.app/sentiment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        countryA: selectedA.value.name,
-        countryB: selectedB.value.name,
+        countryA: A,
+        countryB: B
       })
     })
     if (!res.ok) throw new Error(`Server error: ${res.status}`)
