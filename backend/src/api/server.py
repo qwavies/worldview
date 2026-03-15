@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+import random
 from src.api.pydantic_models import CountryABQuery
 
 app = FastAPI()
@@ -10,4 +11,11 @@ def test_api():
 @app.get("/sentiment")
 def get_countryab_sentiment(countryAB: CountryABQuery):
     # TODO: query from DBs and return
-    return {"hello": "world"}
+    def rand():
+        return round(random.uniform(-1, 1), 3)
+
+    return {
+        "news": {"a": rand(), "b": rand()},
+        "reddit": {"a": rand(), "b": rand()},
+        "twitter": {"a": rand(), "b": rand()},
+    }
