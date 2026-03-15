@@ -1,7 +1,10 @@
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'is-submitting': isSubmitting }">
+
     <header class="topbar">
-      <router-link to="/" class="brand-link">Worldview</router-link>
+      <router-link to="/" class="brand">
+        <img :src="logoImage" alt="Worldview Logo" class="logo" />
+      </router-link>
 
       <div class="selector-row">
         <div class="country-slot" :class="{ active: focusedSlot === 'A' }">
@@ -58,21 +61,22 @@
             </div>
           </div>
         </div>
+        <div class="topbar-spacer"></div>
+
       </div>
     </header>
 
+    <!-- ── Map ── -->
     <div class="map-container" ref="mapEl"></div>
 
+    <!-- ── Zoom controls ── -->
     <div class="zoom-controls">
       <button @click="zoomIn">+</button>
       <button @click="zoomOut">−</button>
       <button @click="resetView" title="Reset view">⌂</button>
     </div>
-    <div class="hint" v-if="showHint">Select two countries first</div>
-    <div class="submit">
-      <button @click="submitCompare">></button>
-    </div>
 
+    <!-- ── Legend ── -->
     <div class="legend" v-if="selectedA || selectedB">
       <div v-if="selectedA" class="legend-item">
         <span class="legend-dot" :style="`background:${colorA}`"></span>
@@ -86,46 +90,39 @@
       </div>
     </div>
 
+    <!-- ── Submit ── -->
+    <div class="hint" v-if="showHint">Select two countries first</div>
+    <div class="submit">
+      <button @click="submitCompare" :disabled="isSubmitting">›</button>
+    </div>
+
+    <!-- ── Unavailable popup ── -->
     <div v-if="unavailablePopup" class="unavailable-popup"
       :style="`left: ${unavailablePopup.x}px; top: ${unavailablePopup.y}px`">
       <span class="unavailable-icon">✕</span>
       {{ unavailablePopup.name }}: country unavailable
     </div>
 
+    <!-- ── Results panel (mounts immediately on submit; progress UI shown while loading) ── -->
+    <ResultsPanel v-if="showPanel" :sentimentData="sentimentData" :countryA="selectedA" :countryB="selectedB"
+      :loading="isSubmitting" @close="showPanel = false; sentimentData = null" />
+
   </div>
 </template>
 
-
-
-
 <script setup>
-const unavailablePopup = ref(null)
-let unavailableTimer = null
-
-function showUnavailable(name, event) {
-  if (unavailableTimer) clearTimeout(unavailableTimer)
-  const rect = mapEl.value.getBoundingClientRect()
-  unavailablePopup.value = {
-    name,
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
-  }
-  unavailableTimer = setTimeout(() => { unavailablePopup.value = null }, 2500)
-}
 import { ref, computed, onMounted, watch } from 'vue'
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm'
 import { feature } from 'https://cdn.jsdelivr.net/npm/topojson-client@3/+esm'
-import { useRouter } from 'vue-router'
+import logoImage from '../assets/LogoWithText.png'
 import countryList from '../assets/countries.json'
+import ResultsPanel from '../components/ResultsPanel.vue'
 
+const colorA = '#3B82F6'
+const colorB = '#F97316'
+
+// ── Country selection ─────────────────────────────────────────────
 const countries = ref(countryList)
-const router = useRouter()
-
-const showHint = ref(false)
-
-const colorA = '#3B82F6'  // blue
-const colorB = '#F97316'  // orange
-
 const selectedA = ref(null)
 const selectedB = ref(null)
 const searchA = ref('')
@@ -133,9 +130,6 @@ const searchB = ref('')
 const showDropA = ref(false)
 const showDropB = ref(false)
 const focusedSlot = ref(null)
-const mapEl = ref(null)
-
-let svgEl = null, gEl = null, zoomBehavior = null, pathFn = null, worldData = null
 
 const filteredA = computed(() =>
   countries.value.filter(c =>
@@ -185,9 +179,21 @@ function flagUrl(code2) {
   return `https://flagcdn.com/24x18/${code2.toLowerCase()}.png`
 }
 
-onMounted(async () => {
-  await buildMap()
-})
+// ── Map ───────────────────────────────────────────────────────────
+const mapEl = ref(null)
+let svgEl = null, gEl = null, zoomBehavior = null, pathFn = null, worldData = null
+
+const unavailablePopup = ref(null)
+let unavailableTimer = null
+
+function showUnavailable(name, event) {
+  if (unavailableTimer) clearTimeout(unavailableTimer)
+  const rect = mapEl.value.getBoundingClientRect()
+  unavailablePopup.value = { name, x: event.clientX - rect.left, y: event.clientY - rect.top }
+  unavailableTimer = setTimeout(() => { unavailablePopup.value = null }, 2500)
+}
+
+onMounted(async () => { await buildMap() })
 
 async function buildMap() {
   const width = mapEl.value.clientWidth
@@ -210,7 +216,6 @@ async function buildMap() {
     .style('cursor', 'grab')
     .call(zoomBehavior)
 
-  // ocean background
   svgEl.append('rect')
     .attr('width', '100%')
     .attr('height', '100%')
@@ -218,7 +223,6 @@ async function buildMap() {
 
   gEl = svgEl.append('g')
 
-  // Load world topo
   const topo = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
   worldData = feature(topo, topo.objects.countries)
 
@@ -241,42 +245,23 @@ async function buildMap() {
     .attr('stroke-width', 0.5)
     .style('cursor', 'pointer')
     .on('mouseover', function (event, d) {
-      const name = getCountryName(d)
-      const isSelected = isSelectedCountry(d)
-      if (!isSelected) d3.select(this).attr('fill', '#2a4a6e')
-      showTooltip(event, name)
+      if (!isSelectedCountry(d)) d3.select(this).attr('fill', '#2a4a6e')
+      showTooltip(event, getCountryName(d))
     })
     .on('mousemove', moveTooltip)
-    .on('mouseout', function (event, d) {
-      hideTooltip()
-      updateHighlights()
-    })
+    .on('mouseout', function () { hideTooltip(); updateHighlights() })
     .on('click', function (event, d) {
       const name = getCountryName(d)
       if (!name) return
-      const match = countries.value.find(c =>
-        c.name.toLowerCase() === name.toLowerCase()
-      )
-      if (!match) {
-        showUnavailable(name || 'This territory', event)  // ← was just `return`
-        return
-      }
+      const match = countries.value.find(c => c.name.toLowerCase() === name.toLowerCase())
+      if (!match) { showUnavailable(name || 'This territory', event); return }
 
-      if (focusedSlot.value === 'A') {
-        selectCountry('A', match)
-      } else if (focusedSlot.value === 'B') {
-        selectCountry('B', match)
-      } else {
-        // Key change: if A is filled, always go to B next
-        if (!selectedA.value) {
-          selectCountry('A', match)
-        } else {
-          selectCountry('B', match)  // was: else if (!selectedB) ... else replace A
-        }
-      }
+      if (focusedSlot.value === 'A') selectCountry('A', match)
+      else if (focusedSlot.value === 'B') selectCountry('B', match)
+      else if (!selectedA.value) selectCountry('A', match)
+      else selectCountry('B', match)
     })
 
-  // Tooltip div
   d3.select(mapEl.value)
     .append('div')
     .attr('id', 'map-tooltip')
@@ -292,41 +277,30 @@ async function buildMap() {
     .style('transition', 'opacity 0.1s')
 }
 
-// Country name lookup from numeric ID
-const numericToAlpha2 = {}
-onMounted(() => {
-})
-
-function getCountryName(feature) {
-  return feature.properties?.name || ''
-}
+function getCountryName(feature) { return feature.properties?.name || '' }
 
 function isSelectedCountry(feature) {
   const name = getCountryName(feature)
-  return (selectedA.value && selectedA.value.name === name) ||
-    (selectedB.value && selectedB.value.name === name)
+  return (selectedA.value?.name === name) || (selectedB.value?.name === name)
 }
 
 function updateHighlights() {
   if (!gEl) return
   gEl.selectAll('.country')
-    .attr('fill', (d) => {
+    .attr('fill', d => {
       const name = getCountryName(d)
-      if (selectedA.value && selectedA.value.name === name) return colorA
-      if (selectedB.value && selectedB.value.name === name) return colorB
+      if (selectedA.value?.name === name) return colorA
+      if (selectedB.value?.name === name) return colorB
       return '#1a2e44'
     })
-    .attr('stroke', (d) => {
+    .attr('stroke', d => {
       const name = getCountryName(d)
-      if (selectedA.value && selectedA.value.name === name) return colorA
-      if (selectedB.value && selectedB.value.name === name) return colorB
+      if (selectedA.value?.name === name) return colorA
+      if (selectedB.value?.name === name) return colorB
       return '#2d4a6b'
     })
-    .attr('stroke-width', (d) => {
-      const name = getCountryName(d)
-      return isSelectedCountry(d) ? 2 : 0.5
-    })
-    .attr('filter', (d) => {
+    .attr('stroke-width', d => isSelectedCountry(d) ? 2 : 0.5)
+    .attr('filter', d => {
       if (!isSelectedCountry(d)) return null
       const name = getCountryName(d)
       const col = selectedA.value?.name === name ? colorA : colorB
@@ -348,7 +322,6 @@ function zoomToCountry(country) {
   const scale = Math.min(2, 0.8 / Math.max(dx / width, dy / height))
   const tx = width / 2 - scale * cx
   const ty = height / 2 - scale * cy
-
   svgEl.transition().duration(750).call(
     zoomBehavior.transform,
     d3.zoomIdentity.translate(tx, ty).scale(scale)
@@ -362,7 +335,6 @@ function showTooltip(event, name) {
   tip.textContent = name
   tip.style.opacity = '1'
 }
-
 function moveTooltip(event) {
   const tip = document.getElementById('map-tooltip')
   if (!tip) return
@@ -370,35 +342,59 @@ function moveTooltip(event) {
   tip.style.left = (event.clientX - rect.left + 12) + 'px'
   tip.style.top = (event.clientY - rect.top - 28) + 'px'
 }
-
 function hideTooltip() {
   const tip = document.getElementById('map-tooltip')
   if (tip) tip.style.opacity = '0'
 }
 
-// Zoom controls
 function zoomIn() { svgEl?.transition().duration(300).call(zoomBehavior.scaleBy, 1.6) }
 function zoomOut() { svgEl?.transition().duration(300).call(zoomBehavior.scaleBy, 0.625) }
 function resetView() {
-  svgEl?.transition().duration(600).call(
-    zoomBehavior.transform, d3.zoomIdentity
-  )
+  svgEl?.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity)
 }
 
+watch([selectedA, selectedB], updateHighlights)
 
-function submitCompare() {
+// ── Submit / fetch ────────────────────────────────────────────────
+const showHint = ref(false)
+const isSubmitting = ref(false)
+const sentimentData = ref(null)
+const showPanel = ref(false)
+
+async function submitCompare() {
   if (!selectedA.value || !selectedB.value) {
     showHint.value = true
     setTimeout(() => showHint.value = false, 2500)
     return
   }
-  router.push({
-    path: '/submission',
-    query: { countryA: selectedA.value.code2, countryB: selectedB.value.code2 }
-  })
-}
 
-watch([selectedA, selectedB], updateHighlights)
+  sentimentData.value = null
+  isSubmitting.value = true
+  showPanel.value = true
+  resetView()
+
+  try {
+    let data
+    try {
+      const res = await fetch(
+        `http://localhost:8000/sentiment?countryA=${selectedA.value.code2}&countryB=${selectedB.value.code2}`
+      )
+      if (!res.ok) throw new Error(`${res.status}`)
+      data = await res.json()
+    } catch {
+      // Mock fallback — simulate real scraping time so progress stages are visible
+      await new Promise(r => setTimeout(r, 11000))
+      data = {
+        news: { a: +(Math.random() * 2 - 1).toFixed(3), b: +(Math.random() * 2 - 1).toFixed(3) },
+        reddit: { a: +(Math.random() * 2 - 1).toFixed(3), b: +(Math.random() * 2 - 1).toFixed(3) },
+        twitter: { a: +(Math.random() * 2 - 1).toFixed(3), b: +(Math.random() * 2 - 1).toFixed(3) },
+      }
+    }
+    sentimentData.value = data
+  } finally {
+    isSubmitting.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -420,6 +416,18 @@ watch([selectedA, selectedB], updateHighlights)
   position: relative;
 }
 
+.page.is-submitting .topbar,
+.page.is-submitting .map-container,
+.page.is-submitting .zoom-controls,
+.page.is-submitting .legend,
+.page.is-submitting .submit,
+.page.is-submitting .hint {
+  filter: blur(3px);
+  pointer-events: none;
+  transition: filter 0.4s ease;
+}
+
+/* ── Topbar ── */
 .topbar {
   display: flex;
   align-items: center;
@@ -431,30 +439,51 @@ watch([selectedA, selectedB], updateHighlights)
   overflow: visible;
   flex-shrink: 0;
   z-index: 10;
+  transition: filter 0.4s ease;
 }
 
-.title {
-  font-family: 'Syne', sans-serif;
-
-  font-weight: 700;
-  font-size: 16px;
-  color: #60a5fa;
-  white-space: nowrap;
-  letter-spacing: 0.02em;
+/* Update your existing .brand class */
+.brand {
+  text-decoration: none;
+  flex-shrink: 0;
+  display: block;
+  width: 160px;
+  /* Set this to the approximate width of your logo + text */
 }
 
+/* Add this new class */
+.topbar-spacer {
+  width: 160px;
+  /* Must match the .brand width exactly */
+  flex-shrink: 0;
+}
+
+/* Ensure the selector row stays centered */
 .selector-row {
   display: flex;
   align-items: center;
   gap: 12px;
   flex: 1;
+  justify-content: center;
+  /* Add this to help alignment */
 }
+
+.logo {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
 
 .country-slot {
   flex: 1;
   position: relative;
 }
 
+.input-fixed {
+  position: relative;
+  height: 60px;
+}
 
 .autocomplete-wrap {
   position: relative;
@@ -479,15 +508,6 @@ watch([selectedA, selectedB], updateHighlights)
 
 .country-input:focus {
   border-color: #3b82f6;
-}
-
-.input-fixed {
-  position: relative;
-  height: 60px;
-}
-
-.autocomplete-wrap {
-  position: relative;
 }
 
 .flag-chip {
@@ -583,17 +603,20 @@ watch([selectedA, selectedB], updateHighlights)
   transform: scale(1.08);
 }
 
+/* ── Map ── */
 .map-container {
   flex: 1;
   position: relative;
   overflow: hidden;
   min-height: 0;
+  transition: filter 0.4s ease;
 }
 
 .map-container :deep(svg) {
   display: block;
 }
 
+/* ── Zoom controls ── */
 .zoom-controls {
   position: absolute;
   bottom: 28px;
@@ -602,6 +625,7 @@ watch([selectedA, selectedB], updateHighlights)
   flex-direction: column;
   gap: 4px;
   z-index: 10;
+  transition: filter 0.4s ease;
 }
 
 .zoom-controls button {
@@ -624,6 +648,7 @@ watch([selectedA, selectedB], updateHighlights)
   color: #e2e8f0;
 }
 
+/* ── Legend ── */
 .legend {
   position: absolute;
   bottom: 28px;
@@ -637,6 +662,7 @@ watch([selectedA, selectedB], updateHighlights)
   gap: 8px;
   z-index: 10;
   backdrop-filter: blur(6px);
+  transition: filter 0.4s ease;
 }
 
 .legend-item {
@@ -661,18 +687,13 @@ watch([selectedA, selectedB], updateHighlights)
   border-radius: 2px;
 }
 
-.compare-button {
-  right: 10px
-}
-
+/* ── Submit ── */
 .submit {
   position: absolute;
   bottom: 28px;
   right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   z-index: 10;
+  transition: filter 0.4s ease;
 }
 
 .submit button {
@@ -682,7 +703,7 @@ watch([selectedA, selectedB], updateHighlights)
   border: 1px solid #1e3a5f;
   border-radius: 7px;
   color: #94a3b8;
-  font-size: 18px;
+  font-size: 28px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -690,9 +711,20 @@ watch([selectedA, selectedB], updateHighlights)
   transition: background 0.15s, color 0.15s;
 }
 
+.submit button:hover:not(:disabled) {
+  background: #1a2e44;
+  color: #e2e8f0;
+}
+
+.submit button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* ── Hint ── */
 .hint {
   position: absolute;
-  bottom: 92px;
+  bottom: 122px;
   right: 20px;
   background: #0d1b2a;
   border: 1px solid #f97316;
@@ -702,40 +734,10 @@ watch([selectedA, selectedB], updateHighlights)
   font-size: 13px;
   z-index: 10;
   animation: fadeIn 0.2s ease;
+  transition: filter 0.4s ease;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.brand-link {
-  font-family: 'Syne', sans-serif;
-
-  font-size: 18px;
-  font-weight: 700;
-  color: #e2e8f0;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  padding-bottom: 21px;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.brand-link:hover {
-  color: #e2e8f0;
-}
-
+/* ── Unavailable popup ── */
 .unavailable-popup {
   position: absolute;
   transform: translate(-10%, -10%);
@@ -755,5 +757,24 @@ watch([selectedA, selectedB], updateHighlights)
   font-size: 11px;
   margin-right: 5px;
   opacity: 0.7;
+}
+
+/* ── Transitions ── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
